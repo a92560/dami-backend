@@ -311,7 +311,7 @@ class UserController extends BaseController {
       {
         $lookup: {
           from: "items",
-          let: { orderList: "$orderList.itemId" },
+          let: { orderListId: "$orderList.itemId" },
           pipeline: [{
             $project: {
               itemName: 1
@@ -320,7 +320,7 @@ class UserController extends BaseController {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ["$_id", "$$orderList"] },
+                  { $eq: ["$_id", "$$orderListId"] }
                 ]
               }
             }
@@ -429,7 +429,8 @@ class UserController extends BaseController {
       isNeedInsurance,
       linkIds,
       seatData,
-      itemId
+      itemId,
+      itemName
     } = ctx.request.body
       // 查询座位是否已经售出
     const seatId = seatData.map(({ id }) => id)
@@ -483,6 +484,7 @@ class UserController extends BaseController {
           linkIds,
           totalAmount,
           number: seatData.length,
+          itemName,
           itemType1Id: item[0].itemType1Id,
           itemType2Id: item[0].itemType2Id,
           isNeedInvoice: Number(isNeedInvoice),

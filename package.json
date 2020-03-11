@@ -35,7 +35,7 @@
     "lint": "eslint .",
     "ci": "npm run lint && npm run cov",
     "autod": "autod",
-    "start:pm2": "pm2 start server.js --name dami-backend",
+    "start:pm2": "pm2 start server.js --name dami-backend"
   },
   "ci": {
     "version": "10"

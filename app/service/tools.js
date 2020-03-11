@@ -10,18 +10,18 @@ const Service = require("egg").Service
 const nodeMailer = require("nodemailer")
 
 
-const userEmail = "925603297@qq.com"
+const userEmail = "925603297@qq.com" // 这里填写自己的qq邮箱
 let transporter = nodeMailer.createTransport({
   service: "qq",
   port: 465,
   secureConnection: true,
   auth: {
     user: userEmail,
-    pass: "ipvdiogdxuozbcjh"
+    pass: "1234", // 这里需要自己去qq邮箱申请pass
   }
 })
 
-class ToolSerivce extends Service {
+class ToolService extends Service {
   async sendEmail(email, title, html) {
     const { ctx } = this
     const mailOptions = {
@@ -41,4 +41,4 @@ class ToolSerivce extends Service {
   }
 }
 
-module.exports = ToolSerivce
+module.exports = ToolService

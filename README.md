@@ -31,3 +31,7 @@ $ npm stop
 
 
 [egg]: https://eggjs.org
+
+### 注意
+
+clone文件之后需要去app/service/tools.js中修改成为自己的qq邮箱和pass 才能正常使用后端服务

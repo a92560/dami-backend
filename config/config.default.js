@@ -34,7 +34,7 @@ module.exports = appInfo => {
 
   config.mongoose = {
     client: {
-      url: 'mongodb+srv://Darren:parents520++@darren-ql5vi.mongodb.net/dami?retryWrites=true&w=majority',
+      url: 'abc', // 这里填自己的mongodb地址
       options: {
         useUnifiedTopology: true
       },

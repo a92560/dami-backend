@@ -39,6 +39,12 @@ module.exports = app => {
         },
         operate: {
           type: String
+        },
+        cinemaId: {
+          type: String
+        },
+        onTime: {
+          type: String
         }
       }],
       default: []

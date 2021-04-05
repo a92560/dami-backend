@@ -25,7 +25,8 @@ module.exports = app => {
       default: ""
     },
     areaId: {
-      type: String
+      type: String,
+      ref: 'City'
     },
     itemType1Id: {
       type: Schema.Types.ObjectId,
@@ -55,10 +56,12 @@ module.exports = app => {
       }]
     },
     cinemaId: {
-      type: String
-    },
-    cinemaId: {
-      type: String
+      type: {
+        id: {
+          type: String,
+          ref: 'Cinema'
+        }
+      },
     },
     address: {
       type: String
@@ -95,7 +98,25 @@ module.exports = app => {
         }
       }]
     },
+  }, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   })
+
+  ItemSchema.virtual('cinemaItem', {
+    ref: 'Cinema',
+    localField: 'cinemaId.id',
+    foreignField: 'cinemaId',
+    justOne: false,
+  });
+
+  ItemSchema.virtual('cityItem', {
+    ref: 'City',
+    localField: 'areaId',
+    foreignField: 'value.id',
+    justOne: false,
+  });
+
 
   return mongoose.model("Item", ItemSchema)
 }

@@ -29,13 +29,17 @@ module.exports = app => {
           type: Number
         },
         cinemaId: {
-          type: String
+          type: String,
+          ref: 'Cinema'
         },
         status: {
           type: Number
         },
         price: {
           type: Number
+        },
+        time: {
+          type: String,
         }
       }]
     },
@@ -43,6 +47,12 @@ module.exports = app => {
       type: Array
     }
   })
+  SeatSchema.virtual('cinemaItem', {
+    ref: 'Cinema',
+    localField: 'cinemaId',
+    foreignField: 'cinemaId',
+    justOne: false,
+  });
 
   return mongoose.model("Seat", SeatSchema)
 }

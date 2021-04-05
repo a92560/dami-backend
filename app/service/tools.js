@@ -17,7 +17,7 @@ let transporter = nodeMailer.createTransport({
   secureConnection: true,
   auth: {
     user: userEmail,
-    pass: "1234", // 这里需要自己去qq邮箱申请pass
+    pass: "cmgiqnjwxpbibahi", // 这里需要自己去qq邮箱申请pass
   }
 })
 

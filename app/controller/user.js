@@ -347,6 +347,24 @@ class UserController extends BaseController {
           // foreignField: "_id",
           as: "invoice_docs"
         }
+      },
+      {
+        $lookup: {
+          from: "cinemas",
+          let: { cinemaId: "$orderList.cinemaId" },
+          pipeline: [{
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$cinemaId", "$$cinemaId"] },
+                ]
+              }
+            }
+          }, ],
+          // localField: "orderList.itemId",
+          // foreignField: "_id",
+          as: "cinema_docs"
+        }
       }
     ])
     console.log('email', email)
@@ -573,7 +591,25 @@ class UserController extends BaseController {
           // foreignField: "_id",
           as: "item_docs"
         }
-      }
+      },
+      {
+        $lookup: {
+          from: "cinemas",
+          let: { orderList: "$orderList.cinemaId" },
+          pipeline: [{
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$cinemaId", "$$orderList"] },
+                ]
+              }
+            }
+          }, ],
+          // localField: "orderList.itemId",
+          // foreignField: "_id",
+          as: "cinema_docs"
+        }
+      },
     ])
     if (ret && ret.length > 0) {
       this.success(ret)

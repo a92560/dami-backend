@@ -17,4 +17,7 @@ module.exports = app => {
   router.get(BASE_URL + '/items/comments', controller.item.getComments)
   router.get(BASE_URL + '/items/create', controller.item.create)
   router.get(BASE_URL + '/items/address/update', controller.item.updateAddress)
+  router.post(BASE_URL + '/items/history', controller.item.postHistory)
+  router.get(BASE_URL + '/items/history', controller.item.getHistory)
+  router.get(BASE_URL + '/items/recommend', controller.item.getRecommend)
 }

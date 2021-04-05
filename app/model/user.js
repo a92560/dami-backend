@@ -123,6 +123,18 @@ module.exports = app => {
     __v: {
       type: Number,
       select: false
+    },
+    historyList: {
+      type: [{
+        createTime: {
+          type: Date,
+          default: Date.now()
+        },
+        itemId: {
+          type: Schema.Types.ObjectId,
+          ref: "Item"
+        }
+      }]
     }
   }, {
     timestamps: true

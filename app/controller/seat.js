@@ -192,7 +192,7 @@ class SeatController extends BaseController {
     if (!id) {
       this.error('暂无数据,请稍后重试')
     }
-    const ret = await ctx.model.Seat.find({ id })
+    const ret = await ctx.model.Seat.find({ id }).populate({ path: 'cinemaItem' })
     if (ret) {
       this.success(ret)
     }

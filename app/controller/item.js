@@ -116,7 +116,11 @@ class ItemController extends BaseController {
       conditions[index],
       indexList ? conditions[4] : {}
     )
-    const items = await itemModel.skip(skip).limit(pageSize)
+    const items = await itemModel
+      .skip(skip)
+      .limit(pageSize)
+      .populate({ path: 'cinemaItem' })
+      .populate({ path: 'cityItem' })
     if (items) {
       this.success(indexList ? items : { items, total, currentPage, pageSize })
     } else {
@@ -476,55 +480,79 @@ class ItemController extends BaseController {
   async findOne() {
     const { ctx } = this
     const { id } = ctx.query
-    const ret = await ctx.model.Item.aggregate([{
-          $project: {
-            comments: 0
-          }
-        },
-        {
-          $match: {
-            _id: ObjectId(id)
-          }
-        },
-        {
-          $lookup: {
-            from: 'navs',
-            let: { itemTypeId: '$itemType1Id' },
-            pipeline: [{
-                $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$_id', '$$itemTypeId'] }]
-                  }
-                }
-              },
-              { $project: { itemType: 1, children: 1 } }
-            ],
-            // localField: "itemType1Id",
-            // foreignField: "_id",
-            as: 'nav_docs'
-          }
-        },
-        {
-          $lookup: {
-            from: 'cities',
-            let: { areaId: '$areaId' },
-            pipeline: [{
-                $unwind: '$value'
-              },
-              {
-                $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$value.id', '$$areaId'] }]
-                  }
-                }
-              }
-            ],
-            // localField: "itemType1Id",
-            // foreignField: "_id",
-            as: 'city_docs'
-          }
-        }
-      ])
+    const ret = await ctx.model.Item.find({ _id: id })
+      .populate({ path: 'cinemaItem' })
+      .populate({ path: 'cityItem' })
+      .populate('itemType1Id')
+      .populate('itemType2Id')
+      // const ret = await ctx.model.Item.aggregate([{
+      //     $project: {
+      //       comments: 0
+      //     }
+      //   },
+      //   {
+      //     $match: {
+      //       _id: ObjectId(id)
+      //     }
+      //   },
+      //   {
+      //     $unwind: "$cinemaId"
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: 'navs',
+      //       let: { itemTypeId: '$itemType1Id' },
+      //       pipeline: [{
+      //           $match: {
+      //             $expr: {
+      //               $and: [{ $eq: ['$_id', '$$itemTypeId'] }]
+      //             }
+      //           }
+      //         },
+      //         { $project: { itemType: 1, children: 1 } }
+      //       ],
+      //       // localField: "itemType1Id",
+      //       // foreignField: "_id",
+      //       as: 'nav_docs'
+      //     }
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: 'cities',
+      //       let: { areaId: '$areaId' },
+      //       pipeline: [{
+      //           $unwind: '$value'
+      //         },
+      //         {
+      //           $match: {
+      //             $expr: {
+      //               $and: [{ $eq: ['$value.id', '$$areaId'] }]
+      //             }
+      //           }
+      //         }
+      //       ],
+      //       // localField: "itemType1Id",
+      //       // foreignField: "_id",
+      //       as: 'city_docs'
+      //     }
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: 'cinemas',
+      //       let: { cinemaId: '$cinemaId.id' },
+      //       pipeline: [{
+      //         $match: {
+      //           $expr: {
+      //             $and: [{ $eq: ['$cinemaId', '$$cinemaId'] }]
+      //           }
+      //         }
+      //       }],
+      //       // localField: "itemType1Id",
+      //       // foreignField: "_id",
+      //       as: 'cinema_docs'
+      //     }
+      //   },
+      // ]);
       // const areaId = ret.areaId
       // const city = await ctx.model.City.aggregate([{
       //       // 用来展示特定字段
@@ -735,6 +763,174 @@ class ItemController extends BaseController {
       })
     })
     this.success('更新成功')
+  }
+
+  async postHistory() {
+    const { ctx } = this
+    const { id, userId } = ctx.request.body || {}
+    const ret = await ctx.model.User.update({ _id: ObjectId(userId) }, {
+      $push: {
+        historyList: {
+          itemId: id
+        }
+      }
+    })
+    this.success(ret)
+  }
+
+  async getHistory(userId1) {
+    const { ctx } = this
+    const { userId } = ctx.query || userId1
+    const ret = await ctx.model.User.aggregate([{
+          $project: { historyList: 1, _id: 1 }
+        },
+        {
+          $unwind: '$historyList'
+        },
+        {
+          $match: {
+            _id: ObjectId(userId)
+              // "orderList.itemName": {
+              //   $regex: /好/
+              // }
+              // ...conditions[3]
+          }
+        },
+        // {
+        //   $project: {
+        //     itemName: 1
+        //   }
+        // },
+        {
+          $lookup: {
+            from: 'items',
+            let: { historyListId: '$historyList.itemId' },
+            pipeline: [{
+              $match: {
+                $expr: {
+                  $and: [{ $eq: ['$_id', '$$historyListId'] }]
+                }
+              }
+            }],
+            // localField: "orderList.itemId",
+            // foreignField: "_id",
+            as: 'item_docs'
+          }
+        }
+      ])
+      // const ret = await ctx.model.User.aggregate([{
+      //   $unwind: "$orderList"
+      // }, {
+      //   $match: { "_id": { $in: [_id] } }
+      // }])
+
+    if (ret) {
+      this.success(ret)
+    }
+    return ret
+      // this.success(ret)
+  }
+
+  async getRecommend() {
+    const { ctx } = this
+    const { areaId, userId } = ctx.query
+    const realId = await this.getAreaId(areaId)
+    let realAreaId = ''
+    if (realId[0] && realId[0].value && realId[0].value && realId[0].value.id) {
+      realAreaId = realId[0].value.id
+    }
+    console.log()
+    const ret2 = await this.getHistory(userId)
+      // console.log('ret2', ret2);
+    const ret3 = this.findMaxItemTypeId(ret2)
+      // console.log(ret3);
+    const condition = {}
+    if (ret3[0]) {
+      condition['itemType1Id'] = ret3[0]
+    }
+    if (realAreaId) {
+      condition['areaId'] = realAreaId
+    }
+    console.log(condition, 'condition222')
+    const ret = await ctx.model.Item.find({
+        $or: [{
+            itemType1Id: ret3[0] || /./
+          },
+          {
+            areaId: realAreaId || /./
+          }
+        ]
+      })
+      .populate({ path: 'cinemaItem' })
+      .populate({ path: 'cityItem' })
+      .sort({ avgScore: -1 })
+
+    this.success(ret)
+  }
+
+  findMaxItemTypeId(arr = []) {
+    const map = {}
+    const map1 = {}
+    arr.forEach(item => {
+      const { item_docs = [] } = item || {}
+      const finalItem = item_docs[0] || {}
+      const { itemType1Id, areaId } = finalItem || {}
+      if (!map[itemType1Id]) {
+        map[itemType1Id] = 1
+      } else {
+        map[itemType1Id] += 1
+      }
+      if (!map[areaId]) {
+        map1[areaId] = 1
+      } else {
+        map1[areaId] += 1
+      }
+    })
+    let max = 0
+    let key = ''
+    let max1 = 0
+    let key1 = ''
+    for (let m in map) {
+      if (map[m] > max) {
+        max = map[m]
+        key = m
+      }
+    }
+    for (let m in map1) {
+      if (map[m] > max1) {
+        max1 = map[m]
+        key1 = m
+      }
+    }
+    return [key]
+  }
+
+  async getAreaId(name) {
+    console.log('name', name)
+    const { ctx } = this
+    const city = await ctx.model.City.aggregate([{
+        // 用来展示特定字段
+        $project: { _id: 1, value: 1 }
+      },
+      {
+        $unwind: '$value'
+      },
+      {
+        $match: {
+          $or: [{
+              'value.name': name + '市' //"郑州市",
+            },
+            {
+              'value.province': name + '市' //"郑州市",
+            }
+          ]
+        }
+      },
+      {
+        $limit: 50
+      }
+    ])
+    return city
   }
 }
 

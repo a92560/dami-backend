@@ -34,10 +34,9 @@ module.exports = appInfo => {
 
   config.mongoose = {
     client: {
-      url: 'abc', // 这里填自己的mongodb地址
-      options: {
-        useUnifiedTopology: true
-      },
+      // url: 'mongodb+srv://Darren:parents520ABC@darren-ql5vi.mongodb.net/dami?retryWrites=true&w=majority', // 这里填自己的mongodb地址
+      url: 'mongodb://localhost:27017/dami', // 这里填自己的mongodb地址
+      options: { useNewUrlParser: true, useUnifiedTopology: true },
       // mongoose global plugins, expected a function or an array of function and options
       // plugins: [createdPlugin, [updatedPlugin, pluginOptions]],
     },
